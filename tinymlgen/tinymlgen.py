@@ -6,49 +6,6 @@ import hexdump
 from datetime import datetime
 import tensorflow as tf
 
-def port(model, optimize=False, variable_name='model_data', pretty_print=False):
-    """Port the model.
-
-    Args:
-        model (keras.src.engine.sequential.Sequential): _description_
-        optimize (bool, optional): _description_. Defaults to False.
-        variable_name (str, optional): Model variable name. Defaults to 'model_data'.
-        pretty_print (bool, optional): Pretty prints. Defaults to False.
-    """
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    if optimize:
-        if isinstance(optimize, bool):
-            optimizers = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
-        else:
-            optimizers = optimize
-        converter.optimizations = optimizers
-    tflite_model = converter.convert()
-    bytes = hexdump.dump(tflite_model).split(' ')
-    c_array = ', '.join(['0x%02x' % int(byte, 16) for byte in bytes])
-    c = 'const unsigned char %s[] DATA_ALIGN_ATTRIBUTE = {%s};' % (variable_name, c_array)
-    if pretty_print:
-        c = c.replace('{', '{\n\t').replace('}', '\n}')
-        c = re.sub(r'(0x..?, ){12}', lambda x: '%s\n\t' % x.group(0), c)
-    c += '\nconst int %s_len = %d;' % (variable_name, len(bytes))
-    preamble = '''
-// if having troubles with min/max, uncomment the following
-// #undef min    
-// #undef max
-
-#ifdef __has_attribute
-#define HAVE_ATTRIBUTE(x) __has_attribute(x)
-#else
-#define HAVE_ATTRIBUTE(x) 0
-#endif
-#if HAVE_ATTRIBUTE(aligned) || (defined(__GNUC__) && !defined(__clang__))
-#define DATA_ALIGN_ATTRIBUTE __attribute__((aligned(4)))
-#else
-#define DATA_ALIGN_ATTRIBUTE
-#endif
-
-'''
-    return preamble + c
-
 def export_c_code(model, optimize=True, model_name="model_data", pretty_print=False):
     """_summary_
 
