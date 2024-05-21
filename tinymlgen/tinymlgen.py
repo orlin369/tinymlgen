@@ -57,7 +57,7 @@ def export_c_code(model, optimize=True, model_name="model_data", pretty_print=Fa
     formatted_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
 
     # Preamble text.
-    preamble = f"""
+    PREAMBLE  = f"""
 /***************************************************************************
  * WARNING: This is an automatically generated file.
  * DO NOT MODIFY THIS FILE DIRECTLY.
@@ -92,9 +92,9 @@ const int {model_name}_size = {model_bytes_size};
 """
 
     # Put all together.
-    preamble += c_array
+    PREAMBLE  += c_array
 
     # Put final new line.
-    preamble += "\r\n"
+    PREAMBLE  += "\r\n"
 
-    return preamble
+    return PREAMBLE 
